@@ -1,0 +1,52 @@
+services:
+  # Módulo 2: Gateway API (Node.js)
+  gateway:
+    build: ./gateway-api
+    container_name: gateway-api-container
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./gateway-api/.env
+    depends_on:
+      - postgres-db
+      - rabbitmq
+    volumes:
+      - ./gateway-api:/usr/src/app
+      - /usr/src/app/node_modules
+
+  # Serviço de Banco de Dados (PostgreSQL)
+  postgres-db:
+    image: postgres:14-alpine
+    container_name: postgres-db-container
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: recommendation_db
+    ports:
+      - "5433:5432" # Usando a porta alternativa que definimos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # Serviço de Fila de Mensagens (RabbitMQ)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine # Usando a versão mais nova que definimos
+    container_name: rabbitmq-container
+    ports:
+      - "5673:5672" # Usando a porta alternativa que definimos
+      - "15672:15672"
+
+  # Módulo 3: Serviço de Recomendação (Python)
+  # VERIFIQUE SE ESTE BLOCO EXISTE E ESTÁ ALINHADO CORRETAMENTE
+  recommendation-service:
+    build: ./recommendation-service
+    container_name: recommendation-service-container
+    depends_on:
+      - rabbitmq
+      - postgres-db
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
+      - PYTHONNUNBUFFERED=1
+      - LASTFM_API_KEY=0acf45e488212e8f438ca60948fd86bf
+
+volumes:
+  postgres_data:
