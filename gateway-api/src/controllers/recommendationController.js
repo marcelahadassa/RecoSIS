@@ -26,7 +26,7 @@ exports.requestRecommendation = (req, res) => {
     requestedAt: new Date()
   };
 
-  // 3. Publica as DUAS mensagens na fila, uma para cada tipo de trabalho
+  // 3. Publica as duas mensagens na fila, uma para cada tipo de trabalho
   queueService.publishToQueue('recommendation_queue', messageArtists);
   queueService.publishToQueue('recommendation_queue', messageSongs);
   

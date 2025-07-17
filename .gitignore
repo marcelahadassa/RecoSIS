@@ -1,14 +1,18 @@
+# Dependências
+/node_modules/
+/venv/
 
-/node_modules
-/venv
-
+# Arquivos de Ambiente
 .env*
 *.env
 
+# Cache do Python
 __pycache__/
 *.pyc
 
+# Arquivos de Log
 *.log
 
+# Arquivos do SO
 .DS_Store
 Thumbs.db
