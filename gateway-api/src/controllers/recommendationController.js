@@ -1,7 +1,6 @@
 const queueService = require('../services/queueService');
 
 exports.requestRecommendation = (req, res) => {
-  // Agora só precisamos do 'lastfm_username' do corpo da requisição
   const { lastfm_username } = req.body;
   const userId = req.userId; // Este ID vem do token
 
@@ -36,5 +35,3 @@ exports.requestRecommendation = (req, res) => {
     message: 'Seu pedido de recomendações de artistas e músicas foi recebido e está sendo processado.' 
   });
 };
-
-// Se você tiver outras funções neste arquivo, elas continuam aqui...
