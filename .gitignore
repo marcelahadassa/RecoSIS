@@ -1,18 +1,18 @@
-# Dependências
+# Arquivos de Dependências
 /node_modules/
 /venv/
 
-# Arquivos de Ambiente
+# Arquivos de Ambiente (NUNCA ENVIE SUAS SENHAS E CHAVES!)
 .env*
 *.env
 
-# Cache do Python
+# Arquivos de Cache e Build do Python
 __pycache__/
 *.pyc
 
 # Arquivos de Log
 *.log
 
-# Arquivos do SO
+# Arquivos do Sistema Operacional
 .DS_Store
 Thumbs.db
