@@ -2,6 +2,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const cors = require('cors'); 
 const sequelize = require('./config/database'); // importa a conexão com o BD
 const recommendationRoutes = require('./routes/recommendationRoutes'); // importa as novas rotas
 const queueService = require('./services/queueService'); // importa o serviço de fila
@@ -10,6 +11,9 @@ const queueService = require('./services/queueService'); // importa o serviço d
 const authRoutes = require('./routes/authRoutes');
 
 const app = express();
+
+// ativa o CORS para todas as requisições
+app.use(cors());
 
 // middleware para permitir que a API entenda requisições com corpo em JSON
 app.use(express.json());
@@ -39,3 +43,5 @@ sequelize.sync().then(() => {
 }).catch(err => {
   console.error('Não foi possível inicializar a aplicação:', err);
 });
+
+//upar
