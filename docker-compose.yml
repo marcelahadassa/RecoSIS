@@ -1,42 +1,53 @@
 services:
-  # Módulo 2: Gateway API (Node.js)
+  frontend:
+    build: ./frontend
+    container_name: frontend-container
+    ports:
+      - "5173:5173" # Mapeia a porta do Vite para a sua máquina
+    volumes:
+      # Espelha seu código local para dentro do contêiner para desenvolvimento em tempo real
+      - ./frontend:/app
+      # Impede que a node_modules local (se existir) sobrescreva a do contêiner
+      - /app/node_modules
+    environment:
+      # Garante que a atualização automática (hot reload) funcione bem no Docker
+      - CHOKIDAR_USEPOLLING=true
+    depends_on:
+      - gateway # Garante que o frontend só sobe depois do backend estar pronto
+
   gateway:
     build: ./gateway-api
     container_name: gateway-api-container
     ports:
       - "3000:3000"
     env_file:
-      - ./gateway-api/.env
+      - ./.env 
     depends_on:
       - postgres-db
       - rabbitmq
     volumes:
       - ./gateway-api:/usr/src/app
-      - /usr/src/app/node_modules
+      - /app/node_modules
 
-  # Serviço de Banco de Dados (PostgreSQL)
   postgres-db:
     image: postgres:14-alpine
     container_name: postgres-db-container
     environment:
-      POSTGRES_USER: admin
-      POSTGRES_PASSWORD: admin
-      POSTGRES_DB: recommendation_db
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "5433:5432" # Usando a porta alternativa que definimos
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # Serviço de Fila de Mensagens (RabbitMQ)
   rabbitmq:
-    image: rabbitmq:3-management-alpine # Usando a versão mais nova que definimos
+    image: rabbitmq:3-management-alpine
     container_name: rabbitmq-container
     ports:
-      - "5673:5672" # Usando a porta alternativa que definimos
+      - "5673:5672"
       - "15672:15672"
 
-  # Módulo 3: Serviço de Recomendação (Python)
-  # VERIFIQUE SE ESTE BLOCO EXISTE E ESTÁ ALINHADO CORRETAMENTE
   recommendation-service:
     build: ./recommendation-service
     container_name: recommendation-service-container
@@ -44,9 +55,9 @@ services:
       - rabbitmq
       - postgres-db
     environment:
-      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672/
-      - PYTHONNUNBUFFERED=1
-      - LASTFM_API_KEY=0acf45e488212e8f438ca60948fd86bf
+      - RABBITMQ_URL=${RABBITMQ_URL}
+      - PYTHONUNBUFFERED=1
+      - LASTFM_API_KEY=${LASTFM_API_KEY}
 
 volumes:
   postgres_data:

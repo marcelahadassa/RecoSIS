@@ -3,9 +3,7 @@
 /venv/
 
 # Arquivos de Ambiente (NUNCA ENVIE SUAS SENHAS E CHAVES!)
-.env*
-*.env
-
+.env
 # Arquivos de Cache e Build do Python
 __pycache__/
 *.pyc
