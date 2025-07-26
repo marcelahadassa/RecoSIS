@@ -1,50 +1,59 @@
 const queueService = require('../services/queueService');
-const Recommendation = require('../models/Recommendation'); // <-- NOVO import do modelo
+const Recommendation = require('../models/Recommendation'); // Importamos o modelo
 
-exports.requestRecommendation = (req, res) => {
+// função que é 'async' para poder usar 'await'
+exports.requestRecommendation = async (req, res) => {
   const { lastfm_username } = req.body;
-  const userId = req.userId; // Este ID vem do token
+  const userId = req.userId;
 
   if (!lastfm_username) {
     return res.status(400).json({ error: 'O campo lastfm_username é obrigatório.' });
   }
 
-  // prepação da mensagem para o job de artistas
-  const messageArtists = {
-    userId,
-    lastfm_username,
-    type: 'artists',
-    requestedAt: new Date()
-  };
+  try {
+    // correção de bug de artistas/músicas duplicados
+    // antes de enviar os novos pedidos, todas as recomendações antigas do usuário são apagadas
+    await Recommendation.destroy({
+      where: { userId: userId }
+    });
+    console.log(`Recomendações antigas do userId ${userId} foram apagadas.`);
 
-  // preparação da mensagem para o job de músicas
-  const messageSongs = {
-    userId,
-    lastfm_username,
-    type: 'songs',
-    requestedAt: new Date()
-  };
+    // prepara a mensagem para o job de artistas
+    const messageArtists = {
+      userId,
+      lastfm_username,
+      type: 'artists',
+      requestedAt: new Date()
+    };
 
-  // publica as duas mensagens na fila
-  queueService.publishToQueue('recommendation_queue', messageArtists);
-  queueService.publishToQueue('recommendation_queue', messageSongs);
-  
-  // resposta para o usuário
-  res.status(202).json({ 
-    message: 'Seu pedido de recomendações de artistas e músicas foi recebido e está sendo processado.' 
-  });
+    // prepara a mensagem para o job de músicas
+    const messageSongs = {
+      userId,
+      lastfm_username,
+      type: 'songs',
+      requestedAt: new Date()
+    };
+
+    // publica as duas mensagens na fila
+    queueService.publishToQueue('recommendation_queue', messageArtists);
+    queueService.publishToQueue('recommendation_queue', messageSongs);
+    
+    res.status(202).json({ 
+      message: 'Seu pedido de recomendações de artistas e músicas foi recebido e está sendo processado.' 
+    });
+
+  } catch (error) {
+    console.error('Erro ao solicitar recomendação:', error);
+    res.status(500).json({ error: 'Ocorreu um erro interno no servidor.' });
+  }
 };
 
-
-// função que será chamada pelo frontend para buscar os resultados prontos
 exports.getRecommendations = async (req, res) => {
   try {
-    // busca no banco de dados todas as recomendações para o usuário logado
     const recommendations = await Recommendation.findAll({
-      where: { userId: req.userId }, // filtra pelo ID do usuário do token
-      order: [['createdAt', 'DESC']] // ordena pelas mais recentes
+      where: { userId: req.userId },
+      order: [['createdAt', 'DESC']]
     });
-    
     res.status(200).json({ recommendations });
   } catch (error) {
     console.error('Erro ao buscar recomendações:', error);
@@ -52,4 +61,3 @@ exports.getRecommendations = async (req, res) => {
   }
 };
 
-//upar
