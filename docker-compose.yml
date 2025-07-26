@@ -23,13 +23,13 @@ services:
     env_file:
       - ./.env 
     depends_on:
-      - postgres-db
-      - rabbitmq
-    volumes:
-      - ./gateway-api:/usr/src/app
-      - /app/node_modules
+      postgres-db: # MODIFICADO AQUI
+        condition: service_healthy
+      rabbitmq: # MODIFICADO AQUI
+        condition: service_healthy
 
-  postgres-db:
+
+  postgres-db: # <--- 2 espaços de indentação
     image: postgres:14-alpine
     container_name: postgres-db-container
     environment:
@@ -40,13 +40,23 @@ services:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"] # <--- 6 espaços
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  rabbitmq:
+  rabbitmq:  # <--- 2 espaços de indentação
     image: rabbitmq:3-management-alpine
     container_name: rabbitmq-container
     ports:
       - "5673:5672"
       - "15672:15672"
+    healthcheck: # <--- 4 espaços de indentação (no mesmo nível de 'image')
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"] # <--- 6 espaços
+      interval: 10s
+      timeout: 5s
+      retries: 5  
 
   recommendation-service:
     build: ./recommendation-service
